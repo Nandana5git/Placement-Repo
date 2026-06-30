@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}Placement Analytics & Reports — PlacementPortal{% endblock %}
+{% block page_title %}Analytics & Reports{% endblock %}
+{% block nav_analytics %}active{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb-bar" aria-label="breadcrumb">
+    <ol class="breadcrumb-custom">
+        <li><a href="{% url 'dashboard_router' %}"><i class="fa-solid fa-house"></i></a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li class="active">Analytics & Reports</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header Summary -->
+    <div class="col-12">
+        <div class="card-premium p-4 bg-glass border-0 d-flex align-items-center justify-content-between">
+            <div>
+                <h4 class="fw-bold text-dark m-0" style="letter-spacing:-0.03em;">Placement Statistics Dashboard</h4>
+                <p class="text-muted m-0 mt-1">Real-time analytical graphs, package summaries, and monthly hiring trends computed using Pandas.</p>
+            </div>
+            <a href="{% url 'analytics:export_report' %}?type=analytics_reports" class="btn btn-success d-flex align-items-center gap-2">
+                <i class="fa-solid fa-file-excel"></i> Export Summary Report
+            </a>
+        </div>
+    </div>
+
+    <!-- KPIs Row -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card-premium p-3 text-center">
+            <small class="text-muted text-uppercase fw-semibold d-block mb-1" style="font-size:0.7rem;">Placement Rate</small>
+            <h3 class="fw-bold text-success m-0" style="color: var(--secondary) !important;">{{ stats.placement_percentage }}%</h3>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6">
+        <div class="card-premium p-3 text-center">
+            <small class="text-muted text-uppercase fw-semibold d-block mb-1" style="font-size:0.7rem;">Highest Salary CTC</small>
+            <h3 class="fw-bold text-indigo m-0" style="color: var(--accent) !important;">{{ stats.highest_package }} LPA</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card-premium p-3 text-center">
+            <small class="text-muted text-uppercase fw-semibold d-block mb-1" style="font-size:0.7rem;">Average Salary CTC</small>
+            <h3 class="fw-bold text-dark m-0">{{ stats.average_package }} LPA</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card-premium p-3 text-center">
+            <small class="text-muted text-uppercase fw-semibold d-block mb-1" style="font-size:0.7rem;">Registered Candidates</small>
+            <h3 class="fw-bold text-dark m-0">{{ stats.total_students }}</h3>
+        </div>
+    </div>
+
+    <!-- Charts Row 1: Department & Company -->
+    <div class="col-md-6">
+        <div class="card-premium p-4">
+            <h5 class="fw-bold text-dark mb-3" style="letter-spacing:-0.02em;">Department Placement Performance</h5>
+            <div class="chart-container">
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card-premium p-4">
+            <h5 class="fw-bold text-dark mb-3" style="letter-spacing:-0.02em;">Company Hiring Share</h5>
+            <div class="chart-container">
+                <canvas id="companyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2: Monthly Trends & Data Table -->
+    <div class="col-md-6">
+        <div class="card-premium p-4">
+            <h5 class="fw-bold text-dark mb-3" style="letter-spacing:-0.02em;">Monthly Hiring Trends</h5>
+            <div class="chart-container">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Table Stats -->
+    <div class="col-md-6">
+        <div class="card-premium p-4">
+            <h5 class="fw-bold mb-3 text-dark" style="letter-spacing:-0.02em;">Branch-wise Metrics</h5>
+            <div class="table-responsive-custom border-0">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>Branch</th>
+                            <th class="text-center">Registered</th>
+                            <th class="text-center">Placed</th>
+                            <th class="text-center">Placement Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept, info in stats.dept_placement.items %}
+                            <tr>
+                                <td><span class="fw-semibold text-dark">{{ dept }}</span></td>
+                                <td class="text-center">{{ info.total }}</td>
+                                <td class="text-center text-success">{{ info.placed }}</td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        <span class="fw-bold text-indigo" style="color: var(--accent);">{{ info.rate }}%</span>
+                                        <div class="progress d-none d-sm-block" style="width: 60px; height: 6px; border-radius: 50px;">
+                                            <div class="progress-bar bg-accent" role="progressbar" style="width: {{ info.rate }}%; background-color: var(--accent);" aria-valuenow="{{ info.rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick nav row -->
+    <div class="col-12">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'placements:student_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                <i class="fa-solid fa-users me-1"></i>View Student Directory
+            </a>
+            <a href="{% url 'placements:drive_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                <i class="fa-solid fa-briefcase me-1"></i>View All Drives
+            </a>
+            <a href="{% url 'analytics:export_report' %}?type=selected_students" class="btn btn-outline-success btn-sm rounded-pill">
+                <i class="fa-solid fa-file-excel me-1"></i>Export Placed Students
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Deserialize serialized python lists from django context
+    const deptLabels = {{ dept_chart_labels|safe }};
+    const deptRates = {{ dept_chart_rates|safe }};
+    const deptTotals = {{ dept_chart_totals|safe }};
+    const deptPlaced = {{ dept_chart_placed|safe }};
+
+    const companyLabels = {{ company_chart_labels|safe }};
+    const companyCounts = {{ company_chart_counts|safe }};
+
+    const monthLabels = {{ month_chart_labels|safe }};
+    const monthCounts = {{ month_chart_counts|safe }};
+
+    // 1. Department Chart: Grouped Bar Chart (Total vs Placed)
+    const ctxDept = document.getElementById('deptChart').getContext('2d');
+    new Chart(ctxDept, {
+        type: 'bar',
+        data: {
+            labels: deptLabels,
+            datasets: [
+                {
+                    label: 'Registered Students',
+                    data: deptTotals,
+                    backgroundColor: '#E2E8F0', // Light slate
+                    borderRadius: 6,
+                },
+                {
+                    label: 'Placed Students',
+                    data: deptPlaced,
+                    backgroundColor: '#6366F1', // Accent Indigo
+                    borderRadius: 6,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12, font: { family: 'Inter' } } }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [5, 5] } }
+            }
+        }
+    });
+
+    // 2. Company Chart: Horizontal Bar/Pie Chart
+    const ctxCompany = document.getElementById('companyChart').getContext('2d');
+    if (companyLabels.length > 0) {
+        new Chart(ctxCompany, {
+            type: 'doughnut',
+            data: {
+                labels: companyLabels,
+                datasets: [{
+                    data: companyCounts,
+                    backgroundColor: ['#6366F1', '#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6'],
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { boxWidth: 12, font: { family: 'Inter' } } }
+                }
+            }
+        });
+    } else {
+        // Fallback context if no hires yet
+        ctxCompany.font = '14px Inter';
+        ctxCompany.fillText('No hires recorded yet', 50, 100);
+    }
+
+    // 3. Monthly Trends Chart: Line chart
+    const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(ctxMonthly, {
+        type: 'line',
+        data: {
+            labels: monthLabels.length > 0 ? monthLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Selections Released',
+                data: monthCounts.length > 0 ? monthCounts : [0, 0, 0, 0, 0, 0],
+                borderColor: '#10B981', // Emerald
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.3,
+                fill: true,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointBackgroundColor: '#10B981'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [5, 5] }, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+</script>
+{% endblock %}

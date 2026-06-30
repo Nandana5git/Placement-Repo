@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Smart College Placement Management Portal — manage drives, applications, interviews and analytics in one place.">
+    <title>{% block title %}Smart Placement Portal{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom Theme CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Mobile Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-wrapper">
+    <!-- 1. Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <a href="{% url 'dashboard_router' %}" class="sidebar-brand">
+            <i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i>
+            <span>PlacementPortal</span>
+        </a>
+        
+        <ul class="sidebar-menu">
+            {% if user.is_authenticated %}
+                <!-- Dashboard Link — visible to all roles -->
+                <li>
+                    <a href="{% url 'dashboard_router' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                
+                {% if user.is_admin %}
+                    <!-- Admin specific navigation -->
+                    <li class="sidebar-section-label">Manage</li>
+                    <li>
+                        <a href="{% url 'placements:student_list' %}" class="sidebar-link {% block nav_students %}{% endblock %}">
+                            <i class="fa-solid fa-users"></i>
+                            <span>Students Directory</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'placements:company_list' %}" class="sidebar-link {% block nav_companies %}{% endblock %}">
+                            <i class="fa-solid fa-building"></i>
+                            <span>Companies</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'placements:drive_list' %}" class="sidebar-link {% block nav_drives %}{% endblock %}">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <span>Placement Drives</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-section-label">Insights</li>
+                    <li>
+                        <a href="{% url 'analytics:dashboard' %}" class="sidebar-link {% block nav_analytics %}{% endblock %}">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Analytics &amp; Reports</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-section-label">Admin</li>
+                    <li>
+                        <a href="{% url 'placements:drive_create' %}" class="sidebar-link {% block nav_create_drive %}{% endblock %}">
+                            <i class="fa-solid fa-circle-plus"></i>
+                            <span>Create Drive</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/" class="sidebar-link">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Django Admin</span>
+                        </a>
+                    </li>
+
+                {% elif user.is_company %}
+                    <!-- Company specific navigation -->
+                    <li class="sidebar-section-label">Recruiting</li>
+                    <li>
+                        <a href="{% url 'placements:drive_list' %}" class="sidebar-link {% block nav_drives_co %}{% endblock %}">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <span>My Job Drives</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'placements:drive_create' %}" class="sidebar-link {% block nav_create_drive_co %}{% endblock %}">
+                            <i class="fa-solid fa-circle-plus"></i>
+                            <span>Post New Drive</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-section-label">Account</li>
+                    <li>
+                        <a href="{% url 'companies:profile_edit' %}" class="sidebar-link {% block nav_co_profile %}{% endblock %}">
+                            <i class="fa-solid fa-building-user"></i>
+                            <span>Company Profile</span>
+                        </a>
+                    </li>
+
+                {% elif user.is_student %}
+                    <!-- Student specific navigation -->
+                    <li class="sidebar-section-label">Placements</li>
+                    <li>
+                        <a href="{% url 'placements:drive_list' %}" class="sidebar-link {% block nav_drives_st %}{% endblock %}">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <span>Explore Drives</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-section-label">Account</li>
+                    <li>
+                        <a href="{% url 'students:profile_edit' %}" class="sidebar-link {% block nav_st_profile %}{% endblock %}">
+                            <i class="fa-solid fa-user-gear"></i>
+                            <span>Edit Profile</span>
+                        </a>
+                    </li>
+                {% endif %}
+            {% else %}
+                <li>
+                    <a href="{% url 'login' %}" class="sidebar-link active">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Login</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+        
+        <div class="sidebar-footer">
+            {% if user.is_authenticated %}
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width:36px; height:36px; background-color: var(--accent); font-size: 0.85rem; flex-shrink:0;">
+                            {{ user.username|slice:":1"|upper }}
+                        </div>
+                        <div class="overflow-hidden" style="max-width: 140px;">
+                            <div class="fw-semibold text-truncate small text-white">{{ user.get_full_name|default:user.username }}</div>
+                            <div style="font-size: 0.7rem; color: #64748B;">{{ user.get_role_display }}</div>
+                        </div>
+                    </div>
+                    <!-- Logout form -->
+                    <form action="{% url 'logout' %}" method="post" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link p-0 text-slate" style="text-decoration:none; color:#64748B;" title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- 2. Main Content Wrapper -->
+    <main class="main-content">
+        <!-- Topbar Header -->
+        <header class="topnav">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-link text-slate p-0 d-md-none" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-bars fs-5" style="color: var(--text-slate);"></i>
+                </button>
+                <h1 class="m-0 fw-bold text-dark" style="font-size:1.1rem; letter-spacing:-0.02em;">{% block page_title %}Dashboard{% endblock %}</h1>
+            </div>
+            
+            <div class="d-flex align-items-center gap-4">
+                {% if user.is_authenticated %}
+                    <!-- Notifications Dropdown -->
+                    <div class="dropdown">
+                        <div class="notify-bell" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications" id="notificationsToggle">
+                            <i class="fa-regular fa-bell fs-5"></i>
+                            {% with unread_count=user.notifications.all|length %}
+                                {% if unread_count > 0 %}
+                                    {% for n in user.notifications.all %}
+                                        {% if not n.is_read %}
+                                            <span class="notify-badge"></span>
+                                            {% if forloop.first %}{% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        
+                        <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-3" style="width: 340px; border-radius: var(--radius-md);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="m-0 fw-bold">Notifications</h6>
+                                <form action="{% url 'notifications:mark_all_read' %}" method="post" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link p-0 small text-indigo" style="font-size:0.75rem; text-decoration:none; color: var(--accent);">Mark all read</button>
+                                </form>
+                            </div>
+                            <hr class="my-2">
+                            <div class="overflow-auto" style="max-height: 280px;">
+                                {% if user.notifications.all %}
+                                    {% for notification in user.notifications.all|slice:":6" %}
+                                        <div class="p-2 rounded mb-1 {% if not notification.is_read %}bg-light{% endif %}" style="font-size: 0.85rem;">
+                                            <div class="fw-semibold text-dark">
+                                                {% if not notification.is_read %}<span style="color: var(--accent);">● </span>{% endif %}
+                                                {{ notification.title }}
+                                            </div>
+                                            <div class="text-muted text-wrap text-break mb-1" style="font-size:0.8rem;">{{ notification.message|truncatewords:12 }}</div>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <small class="text-muted" style="font-size:0.7rem;">{{ notification.created_at|timesince }} ago</small>
+                                                {% if not notification.is_read %}
+                                                    <form action="{% url 'notifications:mark_read' notification.pk %}" method="post" class="d-inline m-0">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-link p-0 text-success" style="font-size:0.7rem; text-decoration:none;">Mark read</button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fa-regular fa-bell-slash fs-3 mb-2 d-block opacity-50"></i>
+                                        No notifications.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="text-muted d-none d-sm-block" style="font-size: 0.82rem;">
+                    <i class="fa-regular fa-calendar-days me-1"></i>
+                    <span id="live-date"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Breadcrumb Bar (rendered per-page via block) -->
+        {% block breadcrumb %}{% endblock %}
+        
+        <!-- Main Body -->
+        <div class="content-body">
+            <!-- Toast messages / Flash alerts -->
+            {% if messages %}
+                <div class="mb-4" id="flash-messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show card-premium p-3 border-0 shadow-sm mb-2" role="alert">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check text-success{% elif message.tags == 'error' %}fa-circle-xmark text-danger{% elif message.tags == 'warning' %}fa-triangle-exclamation text-warning{% else %}fa-circle-info text-primary{% endif %}"></i>
+                                <span class="fw-medium">{{ message }}</span>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom Theme JS -->
+<script src="{% static 'js/main.js' %}"></script>
+<script>
+    // Live date
+    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+    const el = document.getElementById('live-date');
+    if (el) el.innerText = new Date().toLocaleDateString('en-US', options);
+
+    // Mobile sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle  = document.getElementById('sidebarToggle');
+
+    function openSidebar() {
+        sidebar.classList.add('sidebar-open');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('sidebar-open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (toggle) toggle.addEventListener('click', openSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    // Auto-dismiss flash messages after 5s
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('#flash-messages .alert');
+        alerts.forEach(a => {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(a);
+            bsAlert.close();
+        });
+    }, 5000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

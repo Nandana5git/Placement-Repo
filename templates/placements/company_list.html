@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Corporate Partners — PlacementPortal{% endblock %}
+{% block page_title %}Companies Directory{% endblock %}
+{% block nav_companies %}active{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb-bar" aria-label="breadcrumb">
+    <ol class="breadcrumb-custom">
+        <li><a href="{% url 'dashboard_router' %}"><i class="fa-solid fa-house"></i></a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li class="active">Companies Directory</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Page Header -->
+    <div class="col-12">
+        <div class="section-header">
+            <div>
+                <h2 class="fw-bold text-dark m-0" style="font-size:1.3rem; letter-spacing:-0.02em;">Corporate Partners</h2>
+                <p class="text-muted small m-0 mt-1">
+                    {% if companies %}{{ companies|length }} partner compan{% if companies|length == 1 %}y{% else %}ies{% endif %} registered on the portal{% else %}No companies registered yet{% endif %}
+                </p>
+            </div>
+            <a href="{% url 'placements:drive_create' %}" class="btn btn-primary d-flex align-items-center gap-2">
+                <i class="fa-solid fa-circle-plus"></i> Create Drive for Company
+            </a>
+        </div>
+    </div>
+
+    <div class="col-12">
+        {% if companies %}
+            <div class="row g-3">
+                {% for company in companies %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card-premium p-4 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="text-center mb-3">
+                                    {% if company.logo %}
+                                        <img src="{{ company.logo.url }}" class="rounded-circle border p-1 mb-2" style="width: 64px; height: 64px; object-fit: cover;" alt="logo">
+                                    {% else %}
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fs-3 mx-auto mb-2" style="width: 64px; height: 64px; background-color: var(--accent); font-weight:700;">
+                                            {{ company.company_name|slice:":1" }}
+                                        </div>
+                                    {% endif %}
+                                    <h5 class="fw-bold text-dark mt-2 mb-0">{{ company.company_name }}</h5>
+                                    {% if company.website %}
+                                        <a href="{{ company.website }}" target="_blank" rel="noopener" class="text-muted small" style="text-decoration:none;">
+                                            <i class="fa-solid fa-globe me-1"></i>{{ company.website|truncatechars:30 }}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                <hr class="text-muted opacity-25">
+                                <div class="small text-slate">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="fa-solid fa-user-tie text-muted" style="width:14px;"></i>
+                                        <span><strong>HR Rep:</strong> {{ company.hr_name }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="fa-regular fa-envelope text-muted" style="width:14px;"></i>
+                                        <a href="mailto:{{ company.hr_email }}" class="text-muted" style="text-decoration:none;">{{ company.hr_email }}</a>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-phone text-muted" style="width:14px;"></i>
+                                        <span>{{ company.hr_phone }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-top pt-3 mt-3 d-flex justify-content-between align-items-center">
+                                <span class="badge fw-semibold px-3 py-2" style="background-color: rgba(99,102,241,0.1); color: var(--accent); font-size:0.8rem;">
+                                    <i class="fa-solid fa-briefcase me-1"></i>{{ company.drives.count }} Drive(s)
+                                </span>
+                                <a href="{% url 'placements:drive_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                    View All Drives <i class="fa-solid fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-premium">
+                <div class="empty-state">
+                    <i class="fa-regular fa-building"></i>
+                    <h5>No Companies Yet</h5>
+                    <p>No partner companies have registered on the portal. Companies can sign up from the registration page.</p>
+                    <a href="{% url 'register_company' %}" class="btn btn-primary rounded-pill">
+                        <i class="fa-solid fa-plus me-1"></i>Register a Company
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

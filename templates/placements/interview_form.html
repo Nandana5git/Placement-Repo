@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Schedule Interview Round — PlacementPortal{% endblock %}
+{% block page_title %}Schedule Interview{% endblock %}
+{% block nav_drives %}active{% endblock %}
+{% block nav_drives_co %}active{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb-bar" aria-label="breadcrumb">
+    <ol class="breadcrumb-custom">
+        <li><a href="{% url 'dashboard_router' %}"><i class="fa-solid fa-house"></i></a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li><a href="{% url 'placements:drive_list' %}">Placement Drives</a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li><a href="{% url 'placements:drive_detail' application.drive.pk %}">{{ application.drive.job_title|truncatechars:25 }}</a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li class="active">Schedule Interview</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card-premium p-4">
+            <h5 class="fw-bold text-dark mb-2" style="letter-spacing:-0.03em;">Schedule Candidate Round</h5>
+            <p class="text-muted mb-4">Assign interview date, round, and meeting coordinates. The student will be notified immediately via dashboard alerts and email queues.</p>
+            
+            <div class="p-3 bg-light border mb-4 d-flex align-items-center gap-2" style="border-radius: var(--radius-md);">
+                <i class="fa-solid fa-user-tie text-indigo fs-5" style="color: var(--accent);"></i>
+                <div>
+                    <strong class="text-dark d-block" style="font-size: 0.9rem;">Candidate: {{ application.student.user.get_full_name }}</strong>
+                    <span class="text-muted small" style="font-size: 0.8rem;">Drive: {{ application.drive.job_title }} at {{ application.drive.company.company_name }}</span>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text text-muted" style="font-size: 0.75rem;">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <div class="d-flex align-items-center justify-content-between border-top pt-4 mt-3">
+                    <a href="{% url 'placements:drive_detail' application.drive.pk %}" class="btn-back">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Drive
+                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'placements:drive_detail' application.drive.pk %}" class="btn btn-outline-secondary rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="fa-regular fa-calendar-check me-1"></i>Confirm Schedule
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

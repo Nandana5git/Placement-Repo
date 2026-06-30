@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header Greeting Widget -->
+    <div class="col-12">
+        <div class="card-premium p-4 bg-glass border-0 d-flex align-items-center justify-content-between">
+            <div>
+                <h4 class="fw-bold text-dark m-0" style="letter-spacing:-0.03em;">Welcome back, {{ user.get_full_name }}!</h4>
+                <p class="text-muted m-0 mt-1">Placement Season 2026 is active. Keep your profile updated for recruiting companies.</p>
+            </div>
+            <a href="{% url 'students:profile_edit' %}" class="btn btn-primary d-none d-sm-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-pen"></i> Update Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Core statistics counters -->
+    <div class="col-md-4">
+        <div class="card-premium widget-stats">
+            <div class="widget-stats-info">
+                <h6>Applied Companies</h6>
+                <h3>{{ applied_count }}</h3>
+            </div>
+            <div class="widget-stats-icon bg-icon-primary">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card-premium widget-stats">
+            <div class="widget-stats-info">
+                <h6>Upcoming Interviews</h6>
+                <h3>{{ upcoming_interviews.count }}</h3>
+            </div>
+            <div class="widget-stats-icon bg-icon-warning">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card-premium widget-stats">
+            <div class="widget-stats-info">
+                <h6>Job Offers</h6>
+                <h3>{{ offers.count }}</h3>
+            </div>
+            <div class="widget-stats-icon bg-icon-success">
+                <i class="fa-solid fa-award"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace columns -->
+    <div class="col-lg-8">
+        <!-- Section 1: Applied Drives status list -->
+        <div class="card-premium p-4 mb-4">
+            <h5 class="fw-bold mb-3 text-dark" style="letter-spacing:-0.02em;">Applied Placements Status</h5>
+            
+            {% if applications %}
+                <div class="table-responsive-custom border-0">
+                    <table class="table table-custom align-middle">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Job Title</th>
+                                <th>Package</th>
+                                <th>Recruitment Stage</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if app.drive.company.logo %}
+                                                <img src="{{ app.drive.company.logo.url }}" class="avatar-thumb" alt="logo">
+                                            {% else %}
+                                                <div class="bg-indigo rounded-circle d-flex align-items-center justify-content-center text-white font-weight-bold" style="width:32px; height:32px; background-color: var(--accent); font-size: 0.8rem;">
+                                                    {{ app.drive.company.company_name|slice:":1" }}
+                                                </div>
+                                            {% endif %}
+                                            <span class="fw-semibold text-dark">{{ app.drive.company.company_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ app.drive.job_title }}</td>
+                                    <td><span class="fw-semibold text-dark">{{ app.drive.salary_package }} LPA</span></td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border p-2">{{ app.get_current_stage_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-custom badge-{% if app.status == 'APPLIED' %}applied{% elif app.status == 'SHORTLISTED' %}shortlisted{% elif app.status == 'OFFERED' %}offered{% else %}rejected{% endif %}">
+                                            {{ app.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'placements:drive_detail' app.drive.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill py-1 px-3">Details</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fa-regular fa-folder-open fs-2 mb-3"></i>
+                    <p class="mb-0">You have not registered for any drives yet.</p>
+                    <a href="{% url 'placements:drive_list' %}" class="btn btn-outline-primary btn-sm mt-3 rounded-pill">Explore Drives</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Section 2: Recommended Companies -->
+        <div class="card-premium p-4">
+            <h5 class="fw-bold mb-3 text-dark" style="letter-spacing:-0.02em;">Recommended Job Drives</h5>
+            <div class="row g-3">
+                {% if recommended_drives %}
+                    {% for drive in recommended_drives %}
+                        <div class="col-md-6">
+                            <div class="card p-3 border-0 bg-light rounded-lg hover-shadow transition-all h-100 d-flex flex-column justify-content-between" style="border-radius: var(--radius-md);">
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if drive.company.logo %}
+                                                <img src="{{ drive.company.logo.url }}" class="avatar-thumb" alt="logo">
+                                            {% else %}
+                                                <div class="bg-indigo rounded-circle d-flex align-items-center justify-content-center text-white" style="width:30px; height:30px; background-color: var(--accent); font-size: 0.75rem;">
+                                                    {{ drive.company.company_name|slice:":1" }}
+                                                </div>
+                                            {% endif %}
+                                            <span class="fw-semibold text-dark">{{ drive.company.company_name }}</span>
+                                        </div>
+                                        <span class="badge bg-indigo-subtle text-indigo" style="font-size:0.75rem;">{{ drive.salary_package }} LPA</span>
+                                    </div>
+                                    <h6 class="fw-bold text-dark mt-2 mb-1">{{ drive.job_title }}</h6>
+                                    <p class="text-muted small text-truncate-2 mb-3">{{ drive.job_description|truncatewords:15 }}</p>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between mt-2">
+                                    <span class="text-muted small">Ends: {{ drive.registration_deadline|date:"d M" }}</span>
+                                    <a href="{% url 'placements:drive_detail' drive.pk %}" class="btn btn-primary btn-sm rounded-pill py-1 px-3">Apply</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 py-4 text-center text-muted">
+                        <i class="fa-regular fa-face-smile fs-3 mb-2"></i>
+                        <p class="mb-0">No recommendations. You have either applied to all matches or need to update your CGPA/Skills.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side Column widgets -->
+    <div class="col-lg-4">
+        <!-- Profile completion tracker -->
+        <div class="card-premium p-4 mb-4">
+            <h5 class="fw-bold mb-3 text-dark" style="letter-spacing:-0.02em;">Profile Strength</h5>
+            
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small">Completion Rate</span>
+                <span class="fw-bold text-indigo">{{ completion_percentage }}%</span>
+            </div>
+            <div class="progress mb-4" style="height: 8px; border-radius: 50px;">
+                <div class="progress-bar bg-accent" role="progressbar" style="width: {{ completion_percentage }}%; background-color: var(--accent);" aria-valuenow="{{ completion_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-lg" style="border-radius: var(--radius-md);">
+                {% if user.student_profile.profile_photo %}
+                    <img src="{{ user.student_profile.profile_photo.url }}" class="rounded-circle border" style="width: 50px; height: 50px; object-fit: cover;" alt="profile">
+                {% else %}
+                    <div class="bg-indigo rounded-circle d-flex align-items-center justify-content-center text-white fs-4" style="width: 50px; height: 50px; background-color: var(--accent);">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <h6 class="fw-bold text-dark mb-0">{{ user.get_full_name }}</h6>
+                    <small class="text-muted">Register: {{ user.student_profile.register_number }}</small>
+                </div>
+            </div>
+
+            <!-- Mini stats details -->
+            <div class="row g-2 mb-4 text-center">
+                <div class="col-6">
+                    <div class="p-2 border rounded-md">
+                        <small class="text-muted d-block text-uppercase" style="font-size:0.65rem;">CGPA</small>
+                        <span class="fw-bold text-dark fs-5">{{ user.student_profile.cgpa }}</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 border rounded-md">
+                        <small class="text-muted d-block text-uppercase" style="font-size:0.65rem;">Backlogs</small>
+                        <span class="fw-bold text-dark fs-5">{{ user.student_profile.backlogs }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resume button indicator -->
+            <div class="mb-3">
+                <h6 class="fw-bold text-dark small mb-2">Resume Document</h6>
+                {% if user.student_profile.resume %}
+                    <a href="{{ user.student_profile.resume.url }}" target="_blank" class="btn btn-outline-navy w-100 btn-sm rounded-pill d-flex align-items-center justify-content-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-danger"></i> View My Resume
+                    </a>
+                {% else %}
+                    <div class="alert alert-warning p-2 small m-0 border-0" style="border-radius: var(--radius-md);">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i> No resume uploaded.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Skills List -->
+            <div>
+                <h6 class="fw-bold text-dark small mb-2">My Skills Tagged</h6>
+                <div class="d-flex flex-wrap gap-1">
+                    {% if user.student_profile.skill_list %}
+                        {% for skill in user.student_profile.skill_list %}
+                            <span class="badge bg-indigo text-white" style="background-color: var(--accent); font-weight: 500;">{{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted small">No skills tagged yet.</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Interviews timeline panel -->
+        <div class="card-premium p-4 mb-4">
+            <h5 class="fw-bold mb-3 text-dark" style="letter-spacing:-0.02em;">Interview Schedule</h5>
+            {% if upcoming_interviews %}
+                <div class="timeline mt-2">
+                    {% for interview in upcoming_interviews %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <span class="badge bg-light border text-dark small mb-1">{{ interview.get_round_name_display }}</span>
+                                <h6 class="fw-bold text-dark mb-1">{{ interview.application.drive.company.company_name }}</h6>
+                                <p class="text-muted small mb-2"><i class="fa-regular fa-clock me-1"></i> {{ interview.scheduled_at|date:"d-M-Y H:i A" }}</p>
+                                <div class="text-slate small border-top pt-1 mt-1">
+                                    <i class="fa-solid fa-location-dot me-1"></i> {{ interview.location }}
+                                    {% if interview.notes %}
+                                        <div class="text-muted mt-1" style="font-size:0.75rem;">{{ interview.notes }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fa-regular fa-calendar-times fs-3 mb-2"></i>
+                    <p class="mb-0">No interviews scheduled.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

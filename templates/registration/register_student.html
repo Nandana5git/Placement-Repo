@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Sign Up - Placement Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .app-wrapper {
+        display: block !important;
+    }
+    .sidebar {
+        display: none !important;
+    }
+    .topnav {
+        display: none !important;
+    }
+    .content-body {
+        padding: 0 !important;
+    }
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: stretch;
+    }
+    .login-hero {
+        background-color: var(--primary);
+        color: #FFFFFF;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 3rem;
+        flex: 1.2;
+    }
+    .login-form-side {
+        flex: 1;
+        background-color: #FFFFFF;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 3rem 2.5rem;
+    }
+    @media (max-width: 991.98px) {
+        .login-hero {
+            display: none !important;
+        }
+        .login-form-side {
+            padding: 2.5rem 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <!-- Left Hero Pane -->
+    <div class="login-hero">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-graduation-cap fs-3" style="color: var(--accent);"></i>
+            <span class="fs-4 fw-bold tracking-tight">PlacementPortal</span>
+        </div>
+        
+        <div>
+            <span class="badge-custom bg-icon-primary text-white py-1 px-3 mb-3">Student Registration</span>
+            <h1 class="display-6 fw-bold mb-4" style="line-height: 1.15; letter-spacing: -0.04em;">Build Your Career Profile. Apply to Jobs.</h1>
+            <p class="text-muted" style="color: #94A3B8 !important; max-width: 480px;">Complete your registration to enter your CGPA, key skills, and upload your resume for recruiter evaluation.</p>
+        </div>
+        
+        <div class="text-muted" style="color: #64748B !important; font-size: 0.85rem;">
+            Already have an account? <a href="{% url 'login' %}" class="text-white fw-bold">Sign In</a>
+        </div>
+    </div>
+
+    <!-- Right Form Pane -->
+    <div class="login-form-side">
+        <div style="max-width: 520px; margin: 0 auto; width: 100%;">
+            <div class="mb-4">
+                <h3 class="fw-bold text-dark" style="letter-spacing:-0.03em;">Create Student Account</h3>
+                <p class="text-muted">Enter your academic details to get started</p>
+            </div>
+
+            <!-- Form -->
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger p-2 small mb-3">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    {% for field in form %}
+                        <div class="col-md-{% if field.name in 'first_name,last_name,register_number,department,semester,cgpa,backlogs' %}6{% else %}12{% endif %} mb-3">
+                            <label class="form-label fw-semibold small text-dark mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text text-muted" style="font-size:0.75rem;">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1" style="font-size:0.75rem;">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2.5 mt-3">Register Account</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <p class="text-muted small">Are you a Recruiter? <a href="{% url 'register_company' %}" class="text-indigo">Register Company Profile</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

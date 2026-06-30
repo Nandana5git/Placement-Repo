@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Students Directory — PlacementPortal{% endblock %}
+{% block page_title %}Students Directory{% endblock %}
+{% block nav_students %}active{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb-bar" aria-label="breadcrumb">
+    <ol class="breadcrumb-custom">
+        <li><a href="{% url 'dashboard_router' %}"><i class="fa-solid fa-house"></i></a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li class="active">Students Directory</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Page Header -->
+    <div class="col-12">
+        <div class="section-header">
+            <div>
+                <h2 class="fw-bold text-dark m-0" style="font-size:1.3rem; letter-spacing:-0.02em;">Registered Candidates</h2>
+                <p class="text-muted small m-0 mt-1">
+                    {% if students %}{{ page_obj.paginator.count }} student(s) registered{% if request.GET.department or request.GET.min_cgpa or request.GET.max_backlogs or request.GET.skills %} — filtered results{% endif %}{% else %}No students match the current criteria{% endif %}
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'analytics:export_report' %}?type=selected_students" class="btn btn-outline-success btn-sm rounded-pill d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> Export Placed List
+                </a>
+                <a href="{% url 'analytics:export_report' %}?type=analytics_reports" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> Full Report
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="col-12">
+        <div class="card-premium p-4">
+            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-magnifying-glass me-2" style="color: var(--accent);"></i>Search & Eligibility Filter</h6>
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold text-muted">Branch / Department</label>
+                    <select name="department" class="form-select">
+                        <option value="">All Branches</option>
+                        {% for choice in filter.form.department.field.choices %}
+                            {% if choice.0 %}
+                                <option value="{{ choice.0 }}" {% if request.GET.department == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted">Min CGPA</label>
+                    <input type="number" step="0.1" name="min_cgpa" value="{{ request.GET.min_cgpa }}" class="form-control" placeholder="e.g. 7.5">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted">Max Backlogs</label>
+                    <input type="number" name="max_backlogs" value="{{ request.GET.max_backlogs }}" class="form-control" placeholder="e.g. 0">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold text-muted">Skills Contains</label>
+                    <input type="text" name="skills" value="{{ request.GET.skills }}" class="form-control" placeholder="e.g. Python, Django">
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i>Filter</button>
+                    <a href="{% url 'placements:student_list' %}" class="btn btn-outline-secondary w-100">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Students Directory Table -->
+    <div class="col-12">
+        <div class="card-premium p-4">            
+            {% if students %}
+                <div class="table-responsive-custom border-0">
+                    <table class="table table-custom align-middle">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Reg. Number</th>
+                                <th>Branch</th>
+                                <th>Sem</th>
+                                <th>CGPA</th>
+                                <th>Backlogs</th>
+                                <th>Skills</th>
+                                <th>Resume</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if student.profile_photo %}
+                                                <img src="{{ student.profile_photo.url }}" class="avatar-thumb" alt="avatar">
+                                            {% else %}
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:36px; height:36px; background-color: var(--accent); font-size: 0.8rem; font-weight:700; flex-shrink:0;">
+                                                    {{ student.user.username|slice:":1"|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <span class="fw-semibold text-dark d-block">{{ student.user.get_full_name }}</span>
+                                                <small class="text-muted">{{ student.user.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="fw-semibold text-dark">{{ student.register_number }}</span></td>
+                                    <td>{{ student.get_department_display }}</td>
+                                    <td>Sem {{ student.semester }}</td>
+                                    <td>
+                                        <span class="fw-bold text-dark">{{ student.cgpa }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if student.backlogs > 0 %}danger{% else %}success{% endif %}-subtle text-{% if student.backlogs > 0 %}danger{% else %}success{% endif %} p-2 fw-semibold">
+                                            {{ student.backlogs }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1" style="max-width:180px;">
+                                            {% if student.skill_list %}
+                                                {% for skill in student.skill_list|slice:":3" %}
+                                                    <span class="badge bg-light text-dark border" style="font-size:0.65rem;">{{ skill }}</span>
+                                                {% endfor %}
+                                                {% if student.skill_list|length > 3 %}
+                                                    <span class="badge bg-light text-muted border" style="font-size:0.65rem;">+{{ student.skill_list|length|add:"-3" }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted small">None</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if student.resume %}
+                                            <a href="{{ student.resume.url }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill p-1 px-2" title="View Resume">
+                                                <i class="fa-solid fa-file-pdf text-danger"></i> PDF
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted small">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge-custom badge-{% if student.placement_status == 'UNPLACED' %}applied{% elif student.placement_status == 'PLACED' %}shortlisted{% else %}offered{% endif %}">
+                                            {{ student.get_placement_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="pagination-premium">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.min_cgpa %}&min_cgpa={{ request.GET.min_cgpa }}{% endif %}{% if request.GET.max_backlogs %}&max_backlogs={{ request.GET.max_backlogs }}{% endif %}{% if request.GET.skills %}&skills={{ request.GET.skills }}{% endif %}" title="First">&laquo;</a>
+                            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.min_cgpa %}&min_cgpa={{ request.GET.min_cgpa }}{% endif %}{% if request.GET.max_backlogs %}&max_backlogs={{ request.GET.max_backlogs }}{% endif %}{% if request.GET.skills %}&skills={{ request.GET.skills }}{% endif %}" title="Previous">&#8249;</a>
+                        {% else %}
+                            <span class="disabled-page">&laquo;</span>
+                            <span class="disabled-page">&#8249;</span>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="current-page">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.min_cgpa %}&min_cgpa={{ request.GET.min_cgpa }}{% endif %}{% if request.GET.max_backlogs %}&max_backlogs={{ request.GET.max_backlogs }}{% endif %}{% if request.GET.skills %}&skills={{ request.GET.skills }}{% endif %}">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.min_cgpa %}&min_cgpa={{ request.GET.min_cgpa }}{% endif %}{% if request.GET.max_backlogs %}&max_backlogs={{ request.GET.max_backlogs }}{% endif %}{% if request.GET.skills %}&skills={{ request.GET.skills }}{% endif %}" title="Next">&#8250;</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.min_cgpa %}&min_cgpa={{ request.GET.min_cgpa }}{% endif %}{% if request.GET.max_backlogs %}&max_backlogs={{ request.GET.max_backlogs }}{% endif %}{% if request.GET.skills %}&skills={{ request.GET.skills }}{% endif %}" title="Last">&raquo;</a>
+                        {% else %}
+                            <span class="disabled-page">&#8250;</span>
+                            <span class="disabled-page">&raquo;</span>
+                        {% endif %}
+                    </div>
+                    <p class="pagination-info text-center mt-2">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} &mdash; {{ page_obj.paginator.count }} students total</p>
+                {% endif %}
+
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-user-slash"></i>
+                    <h5>No Students Found</h5>
+                    <p>No student records match the current filter criteria. Try adjusting or resetting the filters.</p>
+                    <a href="{% url 'placements:student_list' %}" class="btn btn-outline-secondary rounded-pill">Clear All Filters</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Drive{% else %}Create Placement Drive{% endif %} — PlacementPortal{% endblock %}
+{% block page_title %}{% if form.instance.pk %}Edit Drive{% else %}Create Drive{% endif %}{% endblock %}
+{% block nav_create_drive %}active{% endblock %}
+{% block nav_create_drive_co %}active{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb-bar" aria-label="breadcrumb">
+    <ol class="breadcrumb-custom">
+        <li><a href="{% url 'dashboard_router' %}"><i class="fa-solid fa-house"></i></a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li><a href="{% url 'placements:drive_list' %}">Placement Drives</a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li class="active">{% if form.instance.pk %}Edit Drive{% else %}Create New Drive{% endif %}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-premium p-4">
+            <h5 class="fw-bold text-dark mb-2" style="letter-spacing:-0.03em;">Placement Drive Settings</h5>
+            <p class="text-muted mb-4">Input job roles, branch filters, and schedule requirements. Eligible candidates will automatically receive email alerts.</p>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                {{ form.hidden_fields }}
+
+                <h6 class="fw-bold text-indigo mb-3 pb-2 border-bottom">Core Job Properties</h6>
+                <div class="row g-3 mb-4">
+                    {% if not user.is_company %}
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium text-dark small">Partner Company</label>
+                            {{ form.company }}
+                            {{ form.company.errors }}
+                        </div>
+                    {% endif %}
+                    <div class="col-md-{% if user.is_company %}12{% else %}6{% endif %}">
+                        <label class="form-label fw-medium text-dark small" for="id_job_title">Job Designation Title</label>
+                        {{ form.job_title }}
+                        {{ form.job_title.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium text-dark small" for="id_salary_package">Annual CTC package (LPA)</label>
+                        {{ form.salary_package }}
+                        {{ form.salary_package.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium text-dark small" for="id_status">Drive Status</label>
+                        {{ form.status }}
+                        {{ form.status.errors }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-medium text-dark small" for="id_job_description">Role Specifications & Details</label>
+                        {{ form.job_description }}
+                        {{ form.job_description.errors }}
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-indigo mb-3 pb-2 border-bottom">Eligibility Standards</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium text-dark small" for="id_eligibility_min_cgpa">Minimum Required CGPA</label>
+                        {{ form.eligibility_min_cgpa }}
+                        {{ form.eligibility_min_cgpa.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium text-dark small" for="id_eligibility_max_backlogs">Maximum Active Backlogs</label>
+                        {{ form.eligibility_max_backlogs }}
+                        {{ form.eligibility_max_backlogs.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium text-dark small" for="id_eligible_branches">Eligible Branches (Comma-separated)</label>
+                        {{ form.eligible_branches }}
+                        <div class="form-text text-muted" style="font-size:0.75rem;">e.g., CSE, ECE, IT, AIDS</div>
+                        {{ form.eligible_branches.errors }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-medium text-dark small" for="id_required_skills">Key Preferred Skills (Comma-separated)</label>
+                        {{ form.required_skills }}
+                        <div class="form-text text-muted" style="font-size:0.75rem;">e.g., Python, SQL, Django (student matches if they have at least one)</div>
+                        {{ form.required_skills.errors }}
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-indigo mb-3 pb-2 border-bottom">Scheduling Timeline</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium text-dark small" for="id_drive_date">Recruitment Drive Date</label>
+                        {{ form.drive_date }}
+                        {{ form.drive_date.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium text-dark small" for="id_registration_deadline">Registration Closing Deadline</label>
+                        {{ form.registration_deadline }}
+                        {{ form.registration_deadline.errors }}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between border-top pt-4">
+                    <a href="{% url 'placements:drive_list' %}" class="btn-back">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Drives
+                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'placements:drive_list' %}" class="btn btn-outline-secondary rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-success rounded-pill px-4">
+                            <i class="fa-solid fa-paper-plane me-1"></i>Publish Job Drive
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

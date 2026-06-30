@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Job Drives — PlacementPortal{% endblock %}
+{% block page_title %}{% if user.is_student %}Explore Job Opportunities{% elif user.is_company %}My Job Drives{% else %}Manage Placement Drives{% endif %}{% endblock %}
+{% block nav_drives %}active{% endblock %}
+{% block nav_drives_co %}active{% endblock %}
+{% block nav_drives_st %}active{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb-bar" aria-label="breadcrumb">
+    <ol class="breadcrumb-custom">
+        <li><a href="{% url 'dashboard_router' %}"><i class="fa-solid fa-house"></i></a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li class="active">{% if user.is_student %}Job Drives{% elif user.is_company %}My Drives{% else %}Placement Drives{% endif %}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Page Header -->
+    <div class="col-12">
+        <div class="section-header">
+            <div>
+                <h2 class="fw-bold text-dark m-0" style="font-size:1.3rem; letter-spacing:-0.02em;">
+                    {% if user.is_student %}Open Job Opportunities{% elif user.is_company %}My Recruitment Drives{% else %}All Placement Drives{% endif %}
+                </h2>
+                <p class="text-muted small m-0 mt-1">
+                    {% if drives %}Showing {{ drives|length }} drive(s){% if filter.form.min_package.value or filter.form.status.value %} matching your filters{% endif %}{% else %}No drives match the current filters{% endif %}
+                </p>
+            </div>
+            {% if user.is_admin or user.is_company %}
+                <a href="{% url 'placements:drive_create' %}" class="btn btn-primary d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Create New Drive
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="col-12">
+        <div class="card-premium p-4">
+            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-filter me-2" style="color: var(--accent);"></i>Filter Placement Drives</h6>
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-muted">Minimum Package (LPA)</label>
+                    <input type="number" step="0.1" name="min_package" value="{{ request.GET.min_package }}" class="form-control" placeholder="e.g. 8.5">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-muted">Drive Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Drives</option>
+                        <option value="ACTIVE" {% if request.GET.status == 'ACTIVE' %}selected{% endif %}>Active</option>
+                        <option value="UPCOMING" {% if request.GET.status == 'UPCOMING' %}selected{% endif %}>Upcoming</option>
+                        <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i>Apply Filters</button>
+                    <a href="{% url 'placements:drive_list' %}" class="btn btn-outline-secondary w-100">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Drives Grid -->
+    <div class="col-12">
+        {% if drives %}
+            <div class="row g-3">
+                {% for drive in drives %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card-premium p-4 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if drive.company.logo %}
+                                            <img src="{{ drive.company.logo.url }}" class="avatar-thumb" alt="logo">
+                                        {% else %}
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:38px; height:38px; background-color: var(--accent); font-size: 0.85rem; font-weight:700; flex-shrink:0;">
+                                                {{ drive.company.company_name|slice:":1" }}
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0">{{ drive.company.company_name }}</h6>
+                                            <span class="text-muted" style="font-size:0.72rem;"><i class="fa-solid fa-calendar-day"></i> {{ drive.drive_date|date:"d M Y" }}</span>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill px-3 py-1 fw-semibold" style="background-color: rgba(99,102,241,0.1); color: var(--accent); font-size:0.75rem;">{{ drive.salary_package }} LPA</span>
+                                </div>
+
+                                <h5 class="fw-bold text-dark mb-2" style="letter-spacing:-0.02em;">{{ drive.job_title }}</h5>
+                                <p class="text-muted small mb-3">{{ drive.job_description|truncatewords:20 }}</p>
+
+                                <div class="small bg-light p-3 mb-3" style="border-radius: var(--radius-md);">
+                                    <div class="mb-1"><i class="fa-solid fa-graduation-cap me-1 text-muted"></i><strong>Min CGPA:</strong> {{ drive.eligibility_min_cgpa }}</div>
+                                    <div class="mb-1"><i class="fa-solid fa-xmark me-1 text-danger"></i><strong>Max Backlogs:</strong> {{ drive.eligibility_max_backlogs }}</div>
+                                    <div class="text-muted" style="font-size:0.7rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">{{ drive.eligible_branches }}</div>
+                                </div>
+
+                                <!-- Drive status badge -->
+                                <span class="badge-custom badge-{% if drive.status == 'ACTIVE' %}shortlisted{% elif drive.status == 'UPCOMING' %}applied{% else %}rejected{% endif %} mb-2">
+                                    {{ drive.get_status_display }}
+                                </span>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between border-top pt-3 mt-2">
+                                <div>
+                                    <small class="text-muted d-block" style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em;">Deadline</small>
+                                    <strong class="text-danger small">{{ drive.registration_deadline|date:"d-M H:i A" }}</strong>
+                                </div>
+                                <a href="{% url 'placements:drive_detail' drive.pk %}" class="btn btn-primary btn-sm rounded-pill px-4">
+                                    {% if user.is_student %}View &amp; Apply{% else %}Manage Candidates{% endif %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <div class="pagination-premium mt-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.min_package %}&min_package={{ request.GET.min_package }}{% endif %}" title="First">&laquo;</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.min_package %}&min_package={{ request.GET.min_package }}{% endif %}" title="Previous">&#8249;</a>
+                    {% else %}
+                        <span class="disabled-page">&laquo;</span>
+                        <span class="disabled-page">&#8249;</span>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="current-page">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.min_package %}&min_package={{ request.GET.min_package }}{% endif %}">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.min_package %}&min_package={{ request.GET.min_package }}{% endif %}" title="Next">&#8250;</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.min_package %}&min_package={{ request.GET.min_package }}{% endif %}" title="Last">&raquo;</a>
+                    {% else %}
+                        <span class="disabled-page">&#8250;</span>
+                        <span class="disabled-page">&raquo;</span>
+                    {% endif %}
+                </div>
+                <p class="pagination-info text-center mt-2">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+            {% endif %}
+
+        {% else %}
+            <div class="card-premium">
+                <div class="empty-state">
+                    <i class="fa-regular fa-folder-open"></i>
+                    <h5>No Drives Found</h5>
+                    <p>No job drives match the current filters. Try adjusting your search criteria.</p>
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <a href="{% url 'placements:drive_list' %}" class="btn btn-outline-secondary rounded-pill">Clear Filters</a>
+                        {% if user.is_admin or user.is_company %}
+                            <a href="{% url 'placements:drive_create' %}" class="btn btn-primary rounded-pill"><i class="fa-solid fa-plus me-1"></i>Create Drive</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

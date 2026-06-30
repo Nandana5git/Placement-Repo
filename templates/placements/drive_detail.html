@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ drive.job_title }} — {{ drive.company.company_name }} — PlacementPortal{% endblock %}
+{% block page_title %}Drive Details{% endblock %}
+{% block nav_drives %}active{% endblock %}
+{% block nav_drives_co %}active{% endblock %}
+{% block nav_drives_st %}active{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb-bar" aria-label="breadcrumb">
+    <ol class="breadcrumb-custom">
+        <li><a href="{% url 'dashboard_router' %}"><i class="fa-solid fa-house"></i></a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li><a href="{% url 'placements:drive_list' %}">{% if user.is_student %}Job Drives{% else %}Placement Drives{% endif %}</a></li>
+        <li><span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></span></li>
+        <li class="active">{{ drive.job_title|truncatechars:30 }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Top action bar -->
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <a href="{% url 'placements:drive_list' %}" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Back to Drives
+            </a>
+            {% if user.is_admin or user.is_company %}
+                <div class="d-flex gap-2">
+                    <span class="text-muted small d-flex align-items-center gap-2">
+                        <span class="badge-custom badge-{% if drive.status == 'ACTIVE' %}shortlisted{% elif drive.status == 'UPCOMING' %}applied{% else %}rejected{% endif %}">{{ drive.get_status_display }}</span>
+                    </span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Left Pane: Core Details -->
+    <div class="col-lg-4">
+        <div class="card-premium p-4 mb-4">
+            <div class="text-center mb-4">
+                {% if drive.company.logo %}
+                    <img src="{{ drive.company.logo.url }}" class="rounded-circle border p-1 mb-2" style="width:72px; height:72px; object-fit: cover;" alt="logo">
+                {% else %}
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fs-2 mx-auto mb-2" style="width: 72px; height: 72px; background-color: var(--accent); font-weight: 700;">
+                        {{ drive.company.company_name|slice:":1" }}
+                    </div>
+                {% endif %}
+                <h5 class="fw-bold text-dark mb-0">{{ drive.company.company_name }}</h5>
+                {% if drive.company.website %}
+                    <a href="{{ drive.company.website }}" target="_blank" rel="noopener" class="text-muted small" style="text-decoration:none;">
+                        <i class="fa-solid fa-globe me-1"></i>Visit Website
+                    </a>
+                {% endif %}
+            </div>
+
+            <hr class="text-muted opacity-25">
+
+            <div class="mb-4">
+                <span class="badge rounded-pill px-3 py-2 mb-2 fw-semibold" style="background-color: rgba(99,102,241,0.1); color: var(--accent);">CTC: {{ drive.salary_package }} LPA</span>
+                <h4 class="fw-bold text-dark mt-2 mb-2" style="letter-spacing:-0.02em;">{{ drive.job_title }}</h4>
+                <p class="text-muted small mb-0">{{ drive.job_description|linebreaksbr }}</p>
+            </div>
+
+            <hr class="text-muted opacity-25">
+
+            <!-- Specs Grid -->
+            <div class="small">
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted"><i class="fa-solid fa-graduation-cap me-2"></i>Min CGPA</span>
+                    <strong class="text-dark">{{ drive.eligibility_min_cgpa }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted"><i class="fa-solid fa-xmark me-2 text-danger"></i>Max Backlogs</span>
+                    <strong class="text-dark">{{ drive.eligibility_max_backlogs }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted"><i class="fa-solid fa-building-columns me-2"></i>Eligible Depts</span>
+                    <strong class="text-dark text-end text-uppercase" style="max-width: 160px; font-size:0.8rem;">{{ drive.eligible_branches }}</strong>
+                </div>
+                {% if drive.required_skills %}
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted"><i class="fa-solid fa-code me-2"></i>Skills</span>
+                        <strong class="text-dark text-end" style="max-width:160px; font-size:0.8rem;">{{ drive.required_skills }}</strong>
+                    </div>
+                {% endif %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted"><i class="fa-regular fa-calendar me-2"></i>Drive Date</span>
+                    <strong class="text-dark">{{ drive.drive_date|date:"d-M-Y" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2">
+                    <span class="text-muted"><i class="fa-solid fa-hourglass-end me-2 text-danger"></i>Deadline</span>
+                    <strong class="text-danger">{{ drive.registration_deadline|date:"d-M H:i A" }}</strong>
+                </div>
+            </div>
+            
+            <!-- Student Apply Section -->
+            {% if user.is_student %}
+                <hr class="text-muted opacity-25">
+                <div class="mt-3">
+                    {% if application %}
+                        <div class="p-3 bg-light border text-center rounded" style="border-radius: var(--radius-md);">
+                            <small class="text-muted d-block text-uppercase mb-1" style="font-size:0.7rem;">Your Application Status</small>
+                            <div class="fw-bold text-dark fs-5 mb-2">{{ application.get_status_display }}</div>
+                            <span class="badge bg-light border text-dark p-2">Round: {{ application.get_current_stage_display }}</span>
+                        </div>
+                        <a href="{% url 'students:dashboard' %}" class="btn btn-outline-secondary w-100 mt-3 rounded-pill btn-sm">
+                            <i class="fa-solid fa-chart-pie me-1"></i>View My Dashboard
+                        </a>
+                    {% else %}
+                        {% if is_eligible %}
+                            {% if has_deadline_passed %}
+                                <div class="alert alert-danger p-3 small text-center mb-0" style="border-radius: var(--radius-md);">
+                                    <i class="fa-solid fa-circle-exclamation me-1"></i><strong>Deadline Passed.</strong> Registration is now closed for this drive.
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success p-2 small text-center mb-3" style="border-radius: var(--radius-md);">
+                                    <i class="fa-solid fa-circle-check me-1"></i> You are <strong>eligible</strong> for this drive!
+                                </div>
+                                <form action="{% url 'placements:apply_drive' drive.pk %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-bold">
+                                        <i class="fa-solid fa-paper-plane me-2"></i>Apply for this Role
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-warning p-3 small mb-0" style="border-radius: var(--radius-md);">
+                                <strong class="d-block mb-1"><i class="fa-solid fa-circle-xmark text-danger me-1"></i>Not Eligible</strong>
+                                <span class="text-muted">{{ eligibility_reason }}</span>
+                            </div>
+                            <a href="{% url 'students:profile_edit' %}" class="btn btn-outline-secondary w-100 mt-3 rounded-pill btn-sm">
+                                <i class="fa-solid fa-user-pen me-1"></i>Update My Profile
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if not user.is_student %}
+            <!-- Export drive-specific reports -->
+            <div class="card-premium p-4">
+                <h5 class="fw-bold mb-3 text-dark small" style="letter-spacing:-0.02em;"><i class="fa-solid fa-file-export me-2" style="color: var(--accent);"></i>Report Exports</h5>
+                <div class="d-flex flex-column gap-2">
+                    <a href="{% url 'analytics:export_report' %}?type=eligible_students&drive_id={{ drive.id }}" class="btn btn-outline-success btn-sm rounded-pill d-flex align-items-center justify-content-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> Export Eligible Candidates
+                    </a>
+                    <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center justify-content-center gap-2">
+                        <i class="fa-solid fa-chart-line"></i> View Full Analytics
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Pane: Recruiter/Admin Applicants Directory -->
+    {% if not user.is_student %}
+        <div class="col-lg-8">
+            <div class="card-premium p-4">
+                <div class="section-header mb-4">
+                    <h5>Applicants Database</h5>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-light border text-dark p-2"><i class="fa-solid fa-users me-1"></i>{{ applied_count }} Applied</span>
+                        <span class="badge-custom badge-shortlisted">{{ shortlisted_count }} Shortlisted</span>
+                        <span class="badge-custom badge-offered">{{ offered_count }} Offered</span>
+                        <span class="badge-custom badge-rejected">{{ rejected_count }} Rejected</span>
+                    </div>
+                </div>
+
+                {% if applications %}
+                    <div class="table-responsive-custom border-0">
+                        <table class="table table-custom align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Candidate</th>
+                                    <th>Register No</th>
+                                    <th>Academic</th>
+                                    <th>Resume</th>
+                                    <th>Status / Stage</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in applications %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                {% if app.student.profile_photo %}
+                                                    <img src="{{ app.student.profile_photo.url }}" class="avatar-thumb" alt="avatar">
+                                                {% else %}
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:36px; height:36px; background-color: var(--accent); font-size: 0.8rem; font-weight:700; flex-shrink:0;">
+                                                        {{ app.student.user.username|slice:":1"|upper }}
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <span class="fw-semibold text-dark d-block">{{ app.student.user.get_full_name }}</span>
+                                                    <small class="text-muted">{{ app.student.get_department_display }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="fw-medium text-dark">{{ app.student.register_number }}</span></td>
+                                        <td>
+                                            <div class="small">
+                                                <div><strong>CGPA:</strong> {{ app.student.cgpa }}</div>
+                                                <div class="text-muted"><strong>Backlogs:</strong> {{ app.student.backlogs }}</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if app.student.resume %}
+                                                <a href="{{ app.student.resume.url }}" target="_blank" class="btn btn-outline-secondary btn-sm p-1 px-2 rounded-pill" title="View Resume">
+                                                    <i class="fa-solid fa-file-pdf text-danger"></i> PDF
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted small">None</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="mb-1">
+                                                <span class="badge-custom badge-{% if app.status == 'APPLIED' %}applied{% elif app.status == 'SHORTLISTED' %}shortlisted{% elif app.status == 'OFFERED' %}offered{% else %}rejected{% endif %}">
+                                                    {{ app.get_status_display }}
+                                                </span>
+                                            </div>
+                                            <span class="badge bg-light text-dark border small" style="font-size:0.7rem;">{{ app.get_current_stage_display }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="dropdown d-inline">
+                                                <button class="btn btn-light btn-sm rounded-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Manage
+                                                </button>
+                                                <ul class="dropdown-menu shadow border-0 p-2" style="border-radius: var(--radius-md); min-width: 220px;">
+                                                    <li><h6 class="dropdown-header text-muted" style="font-size:0.7rem;">Move Stage</h6></li>
+                                                    
+                                                    <form action="{% url 'placements:update_application' app.pk %}" method="post" class="m-0">
+                                                        {% csrf_token %}
+                                                        <li><button type="submit" name="stage" value="APTITUDE" class="dropdown-item small rounded">→ Aptitude Round</button></li>
+                                                        <li><button type="submit" name="stage" value="TECHNICAL" class="dropdown-item small rounded">→ Technical Round</button></li>
+                                                        <li><button type="submit" name="stage" value="HR" class="dropdown-item small rounded">→ HR Round</button></li>
+                                                        
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li><h6 class="dropdown-header text-muted" style="font-size:0.7rem;">Set Status</h6></li>
+                                                        
+                                                        <li><button type="submit" name="status" value="SHORTLISTED" class="dropdown-item text-success small rounded"><i class="fa-solid fa-check me-1"></i>Shortlist</button></li>
+                                                        <li><button type="submit" name="status" value="OFFERED" class="dropdown-item text-primary small rounded"><i class="fa-solid fa-star me-1"></i>Release Offer</button></li>
+                                                        <li><button type="submit" name="status" value="REJECTED" class="dropdown-item text-danger small rounded"><i class="fa-solid fa-xmark me-1"></i>Reject</button></li>
+                                                    </form>
+                                                    
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a href="{% url 'placements:interview_create' app.pk %}" class="dropdown-item small rounded" style="color: var(--accent);">
+                                                            <i class="fa-regular fa-calendar-plus me-1"></i>Schedule Interview
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fa-solid fa-users-slash"></i>
+                        <h5>No Applications Yet</h5>
+                        <p>No students have applied to this drive yet. Share the portal link with eligible candidates.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <!-- Student: show a placeholder to go back and browse more drives -->
+        {% if application %}
+        <div class="col-lg-8">
+            <div class="card-premium p-4">
+                <h5 class="fw-bold mb-3 text-dark">Application Timeline</h5>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker success"></div>
+                        <div class="timeline-content">
+                            <h6 class="fw-bold text-dark mb-1">Application Submitted</h6>
+                            <p class="text-muted small mb-0">Applied on {{ application.applied_at|date:"d-M-Y" }}</p>
+                        </div>
+                    </div>
+                    {% if application.status != 'APPLIED' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker {% if application.status == 'OFFERED' %}success{% elif application.status == 'REJECTED' %}{% else %}warning{% endif %}"></div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold text-dark mb-1">Status: {{ application.get_status_display }}</h6>
+                                <p class="text-muted small mb-0">Current Stage: {{ application.get_current_stage_display }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{% url 'placements:drive_list' %}" class="btn btn-outline-secondary rounded-pill btn-sm">
+                        <i class="fa-solid fa-briefcase me-1"></i>Explore More Drives
+                    </a>
+                    <a href="{% url 'students:dashboard' %}" class="btn btn-primary rounded-pill btn-sm">
+                        <i class="fa-solid fa-chart-pie me-1"></i>My Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

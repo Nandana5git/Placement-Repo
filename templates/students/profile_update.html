@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Update Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card-premium p-4">
+            <h5 class="fw-bold text-dark mb-2" style="letter-spacing:-0.03em;">Academic & Career Profile</h5>
+            <p class="text-muted mb-4">Provide accurate academic metrics. Submitting incorrect CGPA or backlogs is subject to college placement policies.</p>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h6 class="fw-bold text-indigo mb-3 pb-2 border-bottom">Personal Information</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium text-dark small" for="id_first_name">First Name</label>
+                        {{ form.first_name }}
+                        {{ form.first_name.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium text-dark small" for="id_last_name">Last Name</label>
+                        {{ form.last_name }}
+                        {{ form.last_name.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium text-dark small" for="id_phone_number">Contact Number</label>
+                        {{ form.phone_number }}
+                        {{ form.phone_number.errors }}
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-indigo mb-3 pb-2 border-bottom">Academic Records</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-medium text-dark small" for="id_register_number">Register Number</label>
+                        {{ form.register_number }}
+                        {{ form.register_number.errors }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-medium text-dark small" for="id_department">Department</label>
+                        {{ form.department }}
+                        {{ form.department.errors }}
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-medium text-dark small" for="id_semester">Semester</label>
+                        {{ form.semester }}
+                        {{ form.semester.errors }}
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-medium text-dark small" for="id_cgpa">Cumulative CGPA</label>
+                        {{ form.cgpa }}
+                        {{ form.cgpa.errors }}
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-medium text-dark small" for="id_backlogs">Active Backlogs</label>
+                        {{ form.backlogs }}
+                        {{ form.backlogs.errors }}
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-indigo mb-3 pb-2 border-bottom">Resume & Skills Tags</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label class="form-label fw-medium text-dark small" for="id_skills">Skills (Comma-separated)</label>
+                        {{ form.skills }}
+                        <div class="form-text text-muted" style="font-size:0.75rem;">List languages, frameworks, or tools separated by a comma (e.g. Python, Java, SQL, Django).</div>
+                        {{ form.skills.errors }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium text-dark small d-block">Profile Photograph</label>
+                        {% if form.instance.profile_photo %}
+                            <div class="mb-2">
+                                <img src="{{ form.instance.profile_photo.url }}" class="rounded border p-1 mb-2" style="width: 100px; height: 100px; object-fit: cover;" alt="current">
+                            </div>
+                        {% endif %}
+                        {{ form.profile_photo }}
+                        <div class="form-text text-muted" style="font-size:0.75rem;">Upload a formal, high-resolution portrait photograph.</div>
+                        {{ form.profile_photo.errors }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium text-dark small d-block">Resume (PDF format only)</label>
+                        {% if form.instance.resume %}
+                            <div class="mb-2">
+                                <a href="{{ form.instance.resume.url }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill"><i class="fa-solid fa-file-pdf text-danger me-1"></i> View Current Resume</a>
+                            </div>
+                        {% endif %}
+                        {{ form.resume }}
+                        <div class="form-text text-muted" style="font-size:0.75rem;">Make sure your resume is up-to-date. Recruiters evaluate applicants based on this document.</div>
+                        {{ form.resume.errors }}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-end gap-3 border-top pt-4">
+                    <a href="{% url 'students:dashboard' %}" class="btn btn-outline-secondary rounded-pill">Cancel</a>
+                    <button type="submit" class="btn btn-success rounded-pill px-4">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
